@@ -52,9 +52,10 @@ Download a Piper voice model:
 
 ```bash
 mkdir -p ~/.local/share/piper-voices
-cd ~/.local/share/piper-voices
-wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
-wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+curl -L -o ~/.local/share/piper-voices/en_US-lessac-medium.onnx \
+  "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx"
+curl -L -o ~/.local/share/piper-voices/en_US-lessac-medium.onnx.json \
+  "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json"
 ```
 
 ### macOS
@@ -76,9 +77,10 @@ Download a Piper voice model:
 
 ```bash
 mkdir -p ~/.local/share/piper-voices
-cd ~/.local/share/piper-voices
-curl -LO https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
-curl -LO https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+curl -L -o ~/.local/share/piper-voices/en_US-lessac-medium.onnx \
+  "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx"
+curl -L -o ~/.local/share/piper-voices/en_US-lessac-medium.onnx.json \
+  "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json"
 ```
 
 ### Windows
@@ -94,13 +96,12 @@ cd claudevoice
 uv venv && uv pip install -e .
 ```
 
-Download a Piper voice model into `%LOCALAPPDATA%\piper-voices\` or use `--tts-model` to point to any `.onnx` file:
+Download a Piper voice model (or use `--tts-model` to point to any `.onnx` file):
 
 ```powershell
-mkdir "$env:USERPROFILE\.local\share\piper-voices"
-cd "$env:USERPROFILE\.local\share\piper-voices"
-Invoke-WebRequest -Uri "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx" -OutFile "en_US-lessac-medium.onnx"
-Invoke-WebRequest -Uri "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json" -OutFile "en_US-lessac-medium.onnx.json"
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.local\share\piper-voices"
+Invoke-WebRequest -Uri "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx" -OutFile "$env:USERPROFILE\.local\share\piper-voices\en_US-lessac-medium.onnx"
+Invoke-WebRequest -Uri "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json" -OutFile "$env:USERPROFILE\.local\share\piper-voices\en_US-lessac-medium.onnx.json"
 ```
 
 ### WSL2 (Windows Subsystem for Linux)
@@ -115,6 +116,39 @@ export PULSE_SERVER=unix:/mnt/wslg/PulseServer
 Add the `export` line to your `~/.bashrc` to make it persistent. Requires Windows 11 with WSLg enabled (default on recent builds).
 
 ## Usage
+
+### Activate the virtual environment
+
+Before running ClaudeVoice, activate the virtual environment you created during setup.
+
+**Linux / macOS / WSL2:**
+
+```bash
+cd claudevoice
+source .venv/bin/activate
+```
+
+**Windows (PowerShell):**
+
+```powershell
+cd claudevoice
+.venv\Scripts\Activate.ps1
+```
+
+**Windows (Command Prompt):**
+
+```cmd
+cd claudevoice
+.venv\Scripts\activate.bat
+```
+
+Alternatively, you can skip activation and use `uv run`:
+
+```bash
+uv run python -m claudevoice
+```
+
+### Running ClaudeVoice
 
 Interactive mode (keeps prompting until you type `quit` or press Ctrl+C):
 
