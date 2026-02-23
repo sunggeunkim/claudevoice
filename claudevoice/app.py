@@ -32,7 +32,9 @@ class ClaudeVoiceApp:
 
     async def run(self) -> None:
         loop = asyncio.get_event_loop()
-        if sys.platform != "win32":
+        if sys.platform == "win32":
+            signal.signal(signal.SIGINT, lambda *_: self._handle_interrupt())
+        else:
             loop.add_signal_handler(signal.SIGINT, self._handle_interrupt)
 
         await self._playback.start()
@@ -44,7 +46,10 @@ class ClaudeVoiceApp:
                 prompt = await self._input.get_prompt()
                 if prompt is None:
                     break
-                await self._process_prompt(prompt)
+                try:
+                    await self._process_prompt(prompt)
+                except asyncio.CancelledError:
+                    pass
         except KeyboardInterrupt:
             pass
         finally:
@@ -112,7 +117,8 @@ class ClaudeVoiceApp:
 
     def _handle_interrupt(self) -> None:
         if self._processing:
-            asyncio.ensure_future(self._interrupt())
+            loop = asyncio.get_event_loop()
+            loop.call_soon_threadsafe(lambda: asyncio.ensure_future(self._interrupt()))
         else:
             self._running = False
 
