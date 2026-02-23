@@ -181,25 +181,25 @@ claudevoice --no-tts
 
 ```bash
 # Use a specific model
-python -m claudevoice --model sonnet "fix the login bug"
+claudevoice --model sonnet "fix the login bug"
 
 # Visual only — no TTS, just rich terminal rendering
-python -m claudevoice --no-tts "summarize this project"
+claudevoice --no-tts "summarize this project"
 
 # Quiet mode — no tool announcements or cost readout
-python -m claudevoice --no-tools --no-cost "summarize this project"
+claudevoice --no-tools --no-cost "summarize this project"
 
 # Continue the most recent conversation
-python -m claudevoice -c
+claudevoice -c
 
 # Resume a specific session
-python -m claudevoice -r abc123-session-id
+claudevoice -r abc123-session-id
 
 # Use a custom voice model
-python -m claudevoice --tts-model ~/voices/en_GB-alba-medium.onnx
+claudevoice --tts-model ~/voices/en_GB-alba-medium.onnx
 
 # Voice input with wake word
-python -m claudevoice --voice-input --wake-word
+claudevoice --voice-input --wake-word
 ```
 
 ## Voice input (optional)
@@ -213,7 +213,7 @@ uv pip install -e ".[voice]"
 This installs OpenAI Whisper and PyTorch. Then run:
 
 ```bash
-python -m claudevoice --voice-input -q --permission-mode acceptEdits
+claudevoice --voice-input -q --permission-mode acceptEdits
 ```
 
 `-q` suppresses status announcements so you only hear Claude's response. `--permission-mode acceptEdits` auto-approves file operations so Claude doesn't hang waiting for keyboard approval.
@@ -233,7 +233,7 @@ python -m claudevoice --voice-input -q --permission-mode acceptEdits
 Add `--wake-word` to require saying "Hey Claude" before each prompt:
 
 ```bash
-python -m claudevoice --voice-input --wake-word -q --permission-mode acceptEdits
+claudevoice --voice-input --wake-word -q --permission-mode acceptEdits
 ```
 
 In this mode, the microphone is always listening but ignores everything until it hears "Hey Claude". You can either say "Hey Claude, explain this repo" in one breath, or say "Hey Claude" alone and wait for "Yes?" before speaking your prompt.
