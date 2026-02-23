@@ -108,7 +108,11 @@ def main():
 
     # Create backend
     from claudevoice.claude.subprocess_backend import SubprocessBackend
-    backend = SubprocessBackend(model=args.model, permission_mode=args.permission_mode)
+    backend = SubprocessBackend(
+        model=args.model,
+        permission_mode=args.permission_mode,
+        tts_prompt=not args.no_tts,
+    )
 
     # Handle session resume flags
     if args.continue_session:

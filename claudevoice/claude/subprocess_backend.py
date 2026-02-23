@@ -110,6 +110,18 @@ def parse_ndjson_line(data: dict) -> list[ClaudeMessage]:
     return results
 
 
+TTS_SYSTEM_PROMPT = (
+    "Your output will be read aloud by a text-to-speech engine. "
+    "Format your responses for listening, not reading: "
+    "use plain text instead of markdown tables, bullet lists, or code fences. "
+    "For tabular data, describe each row naturally "
+    '(e.g. "The users table has columns: name, email, and role. '
+    'Row 1: Alice, alice@example.com, admin."). '
+    "Avoid raw URLs, file paths longer than 2 segments, and ASCII art. "
+    "Keep sentences short and conversational."
+)
+
+
 class SubprocessBackend(ClaudeBackend):
     """Claude Code backend using subprocess + stream-json NDJSON."""
 
@@ -118,10 +130,12 @@ class SubprocessBackend(ClaudeBackend):
         claude_path: str | None = None,
         model: Optional[str] = None,
         permission_mode: Optional[str] = None,
+        tts_prompt: bool = False,
     ):
         self._claude_path = claude_path or self._find_claude()
         self._model = model
         self._permission_mode = permission_mode
+        self._tts_prompt = tts_prompt
         self._process: Optional[asyncio.subprocess.Process] = None
         self._last_session_id: Optional[str] = None
 
@@ -151,6 +165,8 @@ class SubprocessBackend(ClaudeBackend):
         ]
         if self._permission_mode:
             cmd.extend(["--permission-mode", self._permission_mode])
+        if self._tts_prompt:
+            cmd.extend(["--append-system-prompt", TTS_SYSTEM_PROMPT])
         if resume_id:
             cmd.extend(["--resume", resume_id])
         cmd.append(prompt)
