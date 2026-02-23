@@ -117,9 +117,9 @@ Add the `export` line to your `~/.bashrc` to make it persistent. Requires Window
 
 ## Usage
 
-### Option A: Add to PATH (run from anywhere)
+### Add to PATH
 
-This lets you run `claudevoice` from any directory without activating the venv.
+Add a shell alias so you can run `claudevoice` from any repo:
 
 **Linux / macOS / WSL2** — add to `~/.bashrc` (or `~/.zshrc`):
 
@@ -137,49 +137,9 @@ Add-Content $PROFILE 'function claudevoice { & "$env:USERPROFILE\repos\claudevoi
 
 > Adjust the path if your repo is in a different location.
 
-### Option B: Activate the virtual environment
-
-Activate the venv each time before running:
-
-**Linux / macOS / WSL2:**
-
-```bash
-cd claudevoice
-source .venv/bin/activate
-```
-
-**Windows (PowerShell):**
-
-```powershell
-cd claudevoice
-.venv\Scripts\Activate.ps1
-```
-
-**Windows (Command Prompt):**
-
-```cmd
-cd claudevoice
-.venv\Scripts\activate.bat
-```
-
-### Option C: Use `uv run`
-
-Skip activation entirely:
-
-```bash
-cd claudevoice
-uv run python -m claudevoice
-```
-
 ### Running ClaudeVoice
 
-If you set up Option A above, you can run `claudevoice` directly from anywhere:
-
-```bash
-claudevoice
-```
-
-Otherwise, use `python -m claudevoice` with the venv activated or `uv run`.
+Run `claudevoice` from whatever repo you're working in:
 
 Interactive mode (keeps prompting until you type `quit` or press Ctrl+C):
 
