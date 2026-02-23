@@ -8,7 +8,7 @@ class InputSource(ABC):
     @property
     def ready_message(self) -> str:
         """Message spoken when the app is ready for input."""
-        return "Claude Voice is ready."
+        return "Claude Voice is starting."
 
     @abstractmethod
     async def get_prompt(self) -> Optional[str]:

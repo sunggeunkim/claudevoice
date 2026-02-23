@@ -9,7 +9,7 @@ class KeyboardInput(InputSource):
 
     @property
     def ready_message(self) -> str:
-        return "Claude Voice is ready. Type your prompt."
+        return "Claude Voice is starting. Type your prompt."
 
     async def get_prompt(self) -> Optional[str]:
         loop = asyncio.get_event_loop()

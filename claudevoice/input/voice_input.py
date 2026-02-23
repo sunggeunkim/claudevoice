@@ -34,8 +34,8 @@ class VoiceInput(InputSource):
     @property
     def ready_message(self) -> str:
         if self._wake_word:
-            return "Claude Voice is ready. Say 'Hey Claude' to begin."
-        return "Claude Voice is ready."
+            return "Claude Voice is starting. Say 'Hey Claude' to begin."
+        return "Claude Voice is starting."
 
     def _ensure_components(self):
         """Lazy-init all heavy components."""

@@ -221,8 +221,30 @@ uv pip install -e ".[voice]"
 This installs OpenAI Whisper and PyTorch. Then run:
 
 ```bash
-python -m claudevoice --voice-input
+python -m claudevoice --voice-input -q --permission-mode acceptEdits
 ```
+
+`-q` suppresses status announcements so you only hear Claude's response. `--permission-mode acceptEdits` auto-approves file operations so Claude doesn't hang waiting for keyboard approval.
+
+### How voice input works
+
+1. You'll hear **"Claude Voice is starting."** — wait, don't speak yet.
+2. On first run, it calibrates your microphone noise level (2 seconds of silence).
+3. **After the startup sound finishes, start speaking.** There is no "listening" prompt — it silently begins recording.
+4. Speak your prompt naturally. The recorder detects when you stop talking (2 seconds of silence).
+5. You'll hear **"Processing."** while Whisper transcribes your speech.
+6. You'll hear **"You said: ..."** confirming what was transcribed, then Claude's response.
+7. After the response finishes, it silently starts listening again — just speak your next prompt.
+
+### Wake word mode
+
+Add `--wake-word` to require saying "Hey Claude" before each prompt:
+
+```bash
+python -m claudevoice --voice-input --wake-word -q --permission-mode acceptEdits
+```
+
+In this mode, the microphone is always listening but ignores everything until it hears "Hey Claude". You can either say "Hey Claude, explain this repo" in one breath, or say "Hey Claude" alone and wait for "Yes?" before speaking your prompt.
 
 ## Running tests
 
