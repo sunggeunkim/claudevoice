@@ -43,10 +43,14 @@ class PiperTTSEngine(TTSEngine):
         import sounddevice as sd
 
         sample_rate = self._voice.config.sample_rate
+        import platform
+
+        is_wsl = "microsoft" in platform.release().lower()
         stream = sd.OutputStream(
             samplerate=sample_rate,
             channels=1,
             dtype="int16",
+            latency="high" if is_wsl else None,
         )
         stream.start()
         with self._lock:
