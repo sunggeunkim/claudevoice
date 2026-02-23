@@ -113,9 +113,15 @@ def parse_ndjson_line(data: dict) -> list[ClaudeMessage]:
 class SubprocessBackend(ClaudeBackend):
     """Claude Code backend using subprocess + stream-json NDJSON."""
 
-    def __init__(self, claude_path: str | None = None, model: Optional[str] = None):
+    def __init__(
+        self,
+        claude_path: str | None = None,
+        model: Optional[str] = None,
+        permission_mode: Optional[str] = None,
+    ):
         self._claude_path = claude_path or self._find_claude()
         self._model = model
+        self._permission_mode = permission_mode
         self._process: Optional[asyncio.subprocess.Process] = None
         self._last_session_id: Optional[str] = None
 
@@ -143,6 +149,8 @@ class SubprocessBackend(ClaudeBackend):
             "--output-format", "stream-json",
             "--verbose",
         ]
+        if self._permission_mode:
+            cmd.extend(["--permission-mode", self._permission_mode])
         if resume_id:
             cmd.extend(["--resume", resume_id])
         cmd.append(prompt)

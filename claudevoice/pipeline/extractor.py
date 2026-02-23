@@ -6,9 +6,12 @@ from claudevoice.claude.messages import ClaudeMessage, MessageKind
 class MessageExtractor:
     """Extracts speakable text from ClaudeMessage objects."""
 
-    def __init__(self, speak_tools: bool = True, speak_cost: bool = True):
+    def __init__(
+        self, speak_tools: bool = True, speak_cost: bool = True, quiet: bool = False
+    ):
         self.speak_tools = speak_tools
         self.speak_cost = speak_cost
+        self.quiet = quiet
 
     def extract(self, message: ClaudeMessage) -> Optional[str]:
         """Return speakable text, or None to skip this message."""
@@ -21,9 +24,13 @@ class MessageExtractor:
             return None
 
         elif message.kind == MessageKind.ERROR:
+            if self.quiet:
+                return None
             return f"Error: {message.text}"
 
         elif message.kind == MessageKind.RESULT:
+            if self.quiet:
+                return None
             parts = []
             if message.is_error:
                 parts.append(f"Task failed: {message.text}")
@@ -37,6 +44,8 @@ class MessageExtractor:
             return " ".join(parts)
 
         elif message.kind == MessageKind.SESSION_INIT:
+            if self.quiet:
+                return None
             return "Connected to Claude."
 
         elif message.kind == MessageKind.THINKING:

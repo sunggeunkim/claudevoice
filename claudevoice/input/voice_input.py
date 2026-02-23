@@ -35,7 +35,7 @@ class VoiceInput(InputSource):
     def ready_message(self) -> str:
         if self._wake_word:
             return "Claude Voice is ready. Say 'Hey Claude' to begin."
-        return "Claude Voice is ready. Start speaking."
+        return "Claude Voice is ready."
 
     def _ensure_components(self):
         """Lazy-init all heavy components."""
@@ -144,9 +144,8 @@ class VoiceInput(InputSource):
         return await self._get_prompt_direct()
 
     async def _get_prompt_direct(self) -> Optional[str]:
-        """Direct listen mode: announce → record → transcribe → return."""
+        """Direct listen mode: record → transcribe → return."""
         while True:
-            await self._speak("Listening.")
             text = await self._record_and_transcribe()
             if text is None:
                 await self._speak("I didn't catch that. Try again.")

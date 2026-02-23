@@ -63,6 +63,10 @@ def main():
         help="Don't announce cost at end",
     )
     parser.add_argument(
+        "--quiet", "-q", action="store_true",
+        help="Only speak Claude's text response (skip tools, errors, status)",
+    )
+    parser.add_argument(
         "--voice-input", action="store_true",
         help="Use speech-to-text input instead of keyboard",
     )
@@ -87,6 +91,11 @@ def main():
         help="Resume a specific session by ID",
     )
     parser.add_argument(
+        "--permission-mode", default=None,
+        choices=["default", "acceptEdits", "dontAsk", "bypassPermissions"],
+        help="Permission mode for Claude (default: default). Use 'acceptEdits' or 'dontAsk' for voice input",
+    )
+    parser.add_argument(
         "--show-thinking", action="store_true",
         help="Display thinking blocks in dim style",
     )
@@ -99,7 +108,7 @@ def main():
 
     # Create backend
     from claudevoice.claude.subprocess_backend import SubprocessBackend
-    backend = SubprocessBackend(model=args.model)
+    backend = SubprocessBackend(model=args.model, permission_mode=args.permission_mode)
 
     # Handle session resume flags
     if args.continue_session:
@@ -134,8 +143,9 @@ def main():
     # Create extractor
     from claudevoice.pipeline.extractor import MessageExtractor
     extractor = MessageExtractor(
-        speak_tools=not args.no_tools,
-        speak_cost=not args.no_cost,
+        speak_tools=not args.no_tools and not args.quiet,
+        speak_cost=not args.no_cost and not args.quiet,
+        quiet=args.quiet,
     )
 
     # One-shot or interactive mode
