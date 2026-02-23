@@ -170,7 +170,7 @@ claudevoice --no-tts
 --no-tts               Disable TTS entirely, visual output only
 --continue, -c         Resume the most recent conversation
 --resume, -r ID        Resume a specific conversation by session ID
---permission-mode MODE Permission mode for Claude: default, acceptEdits, dontAsk, bypassPermissions
+--permission-mode MODE Permission mode for Claude (see Permissions section below)
 --show-thinking        Display thinking blocks in dim style
 --voice-input          Use speech-to-text input instead of keyboard
 --whisper-model SIZE   Whisper model size for voice input (default: base)
@@ -201,6 +201,54 @@ claudevoice --tts-model ~/voices/en_GB-alba-medium.onnx
 # Voice input with wake word
 claudevoice --voice-input --wake-word
 ```
+
+## Permissions
+
+ClaudeVoice runs Claude Code non-interactively, so permission prompts can't reach you. You need to pre-approve actions via `--permission-mode`:
+
+| Mode | Behavior |
+|------|----------|
+| `default` | Claude asks for permission — **will hang** since prompts can't reach you |
+| `acceptEdits` | Auto-approves file reads/writes; denies bash commands |
+| `dontAsk` | Denies anything not in your allow rules (see below) |
+| `bypassPermissions` | Approves everything — use only in trusted environments |
+
+**Recommended:** Use `acceptEdits` for most cases, or `dontAsk` with allow rules for full control.
+
+### Option 1: bypassPermissions (quick, no config)
+
+```bash
+claudevoice --permission-mode bypassPermissions
+```
+
+Approves all tool calls without any configuration. Only use this if you trust Claude to run arbitrary commands in your environment.
+
+### Option 2: dontAsk with allow rules (recommended)
+
+Add allow rules to `.claude/settings.local.json` in your project:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Bash(*)",
+      "Glob(*)",
+      "Grep(*)"
+    ]
+  }
+}
+```
+
+Then run with:
+
+```bash
+claudevoice --permission-mode dontAsk
+```
+
+This lets you control exactly which tools Claude can use. Remove `Bash(*)` to allow file operations but block shell commands, or use patterns like `Bash(git *)` to allow only git commands.
 
 ## Voice input (optional)
 

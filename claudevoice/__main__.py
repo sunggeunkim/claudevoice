@@ -93,7 +93,10 @@ def main():
     parser.add_argument(
         "--permission-mode", default=None,
         choices=["default", "acceptEdits", "dontAsk", "bypassPermissions"],
-        help="Permission mode for Claude (default: default). Use 'acceptEdits' or 'dontAsk' for voice input",
+        help="Permission mode for Claude (default: default). "
+             "'acceptEdits' auto-approves file ops. "
+             "'dontAsk' denies anything not in allow rules. "
+             "'bypassPermissions' approves everything (use in trusted environments).",
     )
     parser.add_argument(
         "--show-thinking", action="store_true",
