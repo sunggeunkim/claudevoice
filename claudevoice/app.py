@@ -56,6 +56,12 @@ class ClaudeVoiceApp:
     async def _process_prompt(self, prompt: str) -> None:
         chunker = SentenceChunker()
         self._processing = True
+        quiet = self._extractor.quiet
+
+        if quiet:
+            await self._playback.enqueue(
+                "Processing your request. This may take a moment."
+            )
 
         try:
             sid = None
@@ -67,11 +73,19 @@ class ClaudeVoiceApp:
             ):
                 self._renderer.render(message)
 
+                if quiet and message.kind in (
+                    MessageKind.TOOL_START,
+                    MessageKind.RESULT,
+                    MessageKind.ERROR,
+                    MessageKind.SESSION_INIT,
+                ):
+                    continue
+
                 text = self._extractor.extract(message)
                 if text is None:
                     continue
 
-                # Short messages (tool actions, results) — speak immediately
+                # Non-quiet: speak short messages immediately
                 if message.kind in (
                     MessageKind.TOOL_START,
                     MessageKind.RESULT,
