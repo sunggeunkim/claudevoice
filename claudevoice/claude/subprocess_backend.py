@@ -114,9 +114,10 @@ TTS_SYSTEM_PROMPT = (
     "Your output will be read aloud by a text-to-speech engine. "
     "Format your responses for listening, not reading: "
     "use plain text instead of markdown tables, bullet lists, or code fences. "
-    "For tabular data, describe each row naturally "
-    '(e.g. "The users table has columns: name, email, and role. '
-    'Row 1: Alice, alice@example.com, admin."). '
+    "For tabular data, repeat the column name with each value so the listener "
+    "never has to remember column order "
+    '(e.g. "First row: name is Alice, email is alice@example.com, role is admin. '
+    'Second row: name is Bob, email is bob@example.com, role is user."). '
     "Avoid raw URLs, file paths longer than 2 segments, and ASCII art. "
     "Keep sentences short and conversational."
 )
