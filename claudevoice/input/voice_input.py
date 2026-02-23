@@ -69,8 +69,8 @@ class VoiceInput(InputSource):
                 from claudevoice.input.recorder import AmplitudeVAD
 
                 if isinstance(self._recorder._vad, AmplitudeVAD):
-                    self._recorder._vad.noise_floor = data.get(
-                        "noise_floor", 0.01
+                    self._recorder._vad.noise_floor = max(
+                        data.get("noise_floor", 0.01), 1e-6
                     )
                 self._calibrated = True
                 return

@@ -29,7 +29,7 @@ class AmplitudeVAD:
     """Simple RMS-based VAD fallback when torch is unavailable."""
 
     def __init__(self, noise_floor: float = 0.01):
-        self.noise_floor = noise_floor
+        self.noise_floor = max(noise_floor, 1e-6)
 
     def is_speech(self, frame: np.ndarray) -> float:
         rms = float(np.sqrt(np.mean(frame**2)))
