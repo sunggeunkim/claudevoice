@@ -113,7 +113,7 @@ class AudioRecorder:
         device_frame_size = int(device_rate * FRAME_MS / 1000)
 
         # Ring buffer for incoming audio frames
-        frame_buffer: collections.deque[np.ndarray] = collections.deque(maxsize=2000)
+        frame_buffer: collections.deque[np.ndarray] = collections.deque(maxlen=2000)
         # Pre-buffer to capture speech onset
         pre_buffer: collections.deque[np.ndarray] = collections.deque(
             maxlen=PRE_BUFFER_FRAMES
