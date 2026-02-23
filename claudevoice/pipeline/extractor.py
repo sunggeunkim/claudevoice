@@ -1,6 +1,35 @@
+import re
 from typing import Optional
 
 from claudevoice.claude.messages import ClaudeMessage, MessageKind
+
+
+def strip_markdown(text: str) -> str:
+    """Strip markdown formatting for TTS-friendly plain text."""
+    # Code blocks (``` ... ```) → keep content
+    text = re.sub(r"```\w*\n?", "", text)
+    # Inline code (`...`) → keep content
+    text = re.sub(r"`([^`]+)`", r"\1", text)
+    # Bold/italic (***text***, **text**, *text*)
+    text = re.sub(r"\*{1,3}([^*]+)\*{1,3}", r"\1", text)
+    # Underscores (__text__, _text_)
+    text = re.sub(r"_{1,2}([^_]+)_{1,2}", r"\1", text)
+    # Strikethrough (~~text~~)
+    text = re.sub(r"~~([^~]+)~~", r"\1", text)
+    # Headers (# ... ) → keep text
+    text = re.sub(r"^#{1,6}\s+", "", text, flags=re.MULTILINE)
+    # Links [text](url) → just text
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+    # Images ![alt](url) → alt text
+    text = re.sub(r"!\[([^\]]*)\]\([^)]+\)", r"\1", text)
+    # Blockquotes
+    text = re.sub(r"^>\s?", "", text, flags=re.MULTILINE)
+    # Horizontal rules
+    text = re.sub(r"^[-*_]{3,}\s*$", "", text, flags=re.MULTILINE)
+    # List markers (-, *, numbered)
+    text = re.sub(r"^[\s]*[-*+]\s+", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^[\s]*\d+\.\s+", "", text, flags=re.MULTILINE)
+    return text
 
 
 class MessageExtractor:
@@ -16,7 +45,8 @@ class MessageExtractor:
     def extract(self, message: ClaudeMessage) -> Optional[str]:
         """Return speakable text, or None to skip this message."""
         if message.kind == MessageKind.TEXT_CHUNK:
-            return message.text if message.text.strip() else None
+            text = strip_markdown(message.text)
+            return text if text.strip() else None
 
         elif message.kind == MessageKind.TOOL_START:
             if self.speak_tools:

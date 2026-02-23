@@ -1,5 +1,5 @@
 from claudevoice.claude.messages import ClaudeMessage, MessageKind
-from claudevoice.pipeline.extractor import MessageExtractor
+from claudevoice.pipeline.extractor import MessageExtractor, strip_markdown
 
 
 def test_text_chunk_extracted():
@@ -75,3 +75,39 @@ def test_session_init():
 def test_thinking_skipped():
     msg = ClaudeMessage(kind=MessageKind.THINKING, text="Let me think...")
     assert MessageExtractor().extract(msg) is None
+
+
+def test_strip_markdown_bold():
+    assert strip_markdown("This is **bold** text") == "This is bold text"
+
+
+def test_strip_markdown_italic():
+    assert strip_markdown("This is *italic* text") == "This is italic text"
+
+
+def test_strip_markdown_code():
+    assert strip_markdown("Use `print()` here") == "Use print() here"
+
+
+def test_strip_markdown_code_block():
+    text = "```python\nprint('hi')\n```"
+    result = strip_markdown(text)
+    assert "```" not in result
+    assert "print('hi')" in result
+
+
+def test_strip_markdown_link():
+    assert strip_markdown("See [docs](https://example.com)") == "See docs"
+
+
+def test_strip_markdown_header():
+    assert strip_markdown("## Section Title").strip() == "Section Title"
+
+
+def test_strip_markdown_plain_text():
+    assert strip_markdown("No formatting here.") == "No formatting here."
+
+
+def test_text_chunk_strips_markdown():
+    msg = ClaudeMessage(kind=MessageKind.TEXT_CHUNK, text="Use **this** function.")
+    assert MessageExtractor().extract(msg) == "Use this function."
