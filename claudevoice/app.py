@@ -6,26 +6,29 @@ from claudevoice.claude.base import ClaudeBackend
 from claudevoice.claude.messages import MessageKind
 from claudevoice.pipeline.extractor import MessageExtractor
 from claudevoice.pipeline.chunker import SentenceChunker
-from claudevoice.tts.playback import PlaybackManager
 from claudevoice.input.base import InputSource
+from claudevoice.ui.renderer import NullRenderer
 
 
 class ClaudeVoiceApp:
-    """Main application: prompt -> Claude -> extract -> speak."""
+    """Main application: prompt -> Claude -> extract -> speak + render."""
 
     def __init__(
         self,
         backend: ClaudeBackend,
-        playback: PlaybackManager,
+        playback,
         input_source: InputSource,
         extractor: MessageExtractor | None = None,
+        renderer=None,
     ):
         self._backend = backend
         self._playback = playback
         self._input = input_source
         self._extractor = extractor or MessageExtractor()
+        self._renderer = renderer or NullRenderer()
         self._running = True
         self._processing = False
+        self._first_prompt = True
 
     async def run(self) -> None:
         loop = asyncio.get_event_loop()
@@ -55,7 +58,15 @@ class ClaudeVoiceApp:
         self._processing = True
 
         try:
-            async for message in self._backend.send_prompt(prompt):
+            sid = None
+            if not self._first_prompt:
+                sid = getattr(self._backend, "last_session_id", None)
+
+            async for message in self._backend.send_prompt(
+                prompt, session_id=sid
+            ):
+                self._renderer.render(message)
+
                 text = self._extractor.extract(message)
                 if text is None:
                     continue
@@ -79,9 +90,11 @@ class ClaudeVoiceApp:
             if remaining:
                 await self._playback.enqueue(remaining)
 
+            self._renderer.finalize()
             await self._playback.drain()
         finally:
             self._processing = False
+            self._first_prompt = False
 
     def _handle_interrupt(self) -> None:
         if self._processing:
@@ -90,6 +103,7 @@ class ClaudeVoiceApp:
             self._running = False
 
     async def _interrupt(self) -> None:
+        self._renderer.finalize()
         await self._playback.interrupt()
         await self._backend.interrupt()
         self._processing = False

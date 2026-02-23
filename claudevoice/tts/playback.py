@@ -56,3 +56,22 @@ class PlaybackManager:
             except asyncio.TimeoutError:
                 self._task.cancel()
         await self._engine.shutdown()
+
+
+class NullPlaybackManager:
+    """No-op playback manager for --no-tts mode."""
+
+    async def start(self) -> None:
+        pass
+
+    async def enqueue(self, text: str) -> None:
+        pass
+
+    async def interrupt(self) -> None:
+        pass
+
+    async def drain(self) -> None:
+        pass
+
+    async def shutdown(self) -> None:
+        pass

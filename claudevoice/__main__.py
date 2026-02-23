@@ -75,30 +75,61 @@ def main():
         help="Require 'Hey Claude' wake phrase (use with --voice-input)",
     )
     parser.add_argument(
+        "--no-tts", action="store_true",
+        help="Disable TTS entirely, visual output only",
+    )
+    parser.add_argument(
+        "--continue", "-c", action="store_true", dest="continue_session",
+        help="Resume the most recent session",
+    )
+    parser.add_argument(
+        "--resume", "-r", default=None, metavar="SESSION_ID",
+        help="Resume a specific session by ID",
+    )
+    parser.add_argument(
+        "--show-thinking", action="store_true",
+        help="Display thinking blocks in dim style",
+    )
+    parser.add_argument(
         "prompt", nargs="*",
         help="One-shot prompt (otherwise enters interactive mode)",
     )
 
     args = parser.parse_args()
 
-    # Resolve TTS model path
-    if args.tts_model:
-        model_path = args.tts_model
-        if not os.path.exists(model_path):
-            print(f"Error: TTS model not found at {model_path}")
-            sys.exit(1)
-    else:
-        model_path = find_piper_model(args.voice)
-
     # Create backend
     from claudevoice.claude.subprocess_backend import SubprocessBackend
     backend = SubprocessBackend(model=args.model)
 
-    # Create TTS
-    from claudevoice.tts.piper_engine import PiperTTSEngine
-    from claudevoice.tts.playback import PlaybackManager
-    tts_engine = PiperTTSEngine(model_path=model_path)
-    playback = PlaybackManager(tts_engine)
+    # Handle session resume flags
+    if args.continue_session:
+        backend._last_session_id = "last"
+    elif args.resume:
+        backend._last_session_id = args.resume
+
+    # Create console and renderer
+    from claudevoice.ui.console import console
+    from claudevoice.ui.renderer import VisualRenderer
+    renderer = VisualRenderer(console, show_thinking=args.show_thinking)
+
+    # Create TTS or null playback
+    if args.no_tts:
+        from claudevoice.tts.playback import NullPlaybackManager
+        playback = NullPlaybackManager()
+    else:
+        # Resolve TTS model path
+        if args.tts_model:
+            model_path = args.tts_model
+            if not os.path.exists(model_path):
+                print(f"Error: TTS model not found at {model_path}")
+                sys.exit(1)
+        else:
+            model_path = find_piper_model(args.voice)
+
+        from claudevoice.tts.piper_engine import PiperTTSEngine
+        from claudevoice.tts.playback import PlaybackManager
+        tts_engine = PiperTTSEngine(model_path=model_path)
+        playback = PlaybackManager(tts_engine)
 
     # Create extractor
     from claudevoice.pipeline.extractor import MessageExtractor
@@ -110,7 +141,7 @@ def main():
     # One-shot or interactive mode
     if args.prompt:
         prompt = " ".join(args.prompt)
-        asyncio.run(_one_shot(backend, playback, extractor, prompt))
+        asyncio.run(_one_shot(backend, playback, extractor, renderer, prompt))
     else:
         if args.voice_input:
             try:
@@ -125,14 +156,16 @@ def main():
                 print("Install them with: uv pip install -e \".[voice]\"")
                 sys.exit(1)
         else:
-            from claudevoice.input.keyboard_input import KeyboardInput
-            input_source = KeyboardInput()
+            from claudevoice.ui.input_prompt import RichInput
+            input_source = RichInput(console)
         from claudevoice.app import ClaudeVoiceApp
-        app = ClaudeVoiceApp(backend, playback, input_source, extractor)
+        app = ClaudeVoiceApp(
+            backend, playback, input_source, extractor, renderer=renderer
+        )
         asyncio.run(app.run())
 
 
-async def _one_shot(backend, playback, extractor, prompt):
+async def _one_shot(backend, playback, extractor, renderer, prompt):
     """Run a single prompt, speak the result, and exit."""
     from claudevoice.pipeline.chunker import SentenceChunker
     from claudevoice.claude.messages import MessageKind
@@ -141,6 +174,8 @@ async def _one_shot(backend, playback, extractor, prompt):
     chunker = SentenceChunker()
 
     async for message in backend.send_prompt(prompt):
+        renderer.render(message)
+
         text = extractor.extract(message)
         if text is None:
             continue
@@ -157,6 +192,7 @@ async def _one_shot(backend, playback, extractor, prompt):
     if remaining:
         await playback.enqueue(remaining)
 
+    renderer.finalize()
     await playback.drain()
     await playback.shutdown()
     await backend.close()

@@ -8,7 +8,9 @@ class ClaudeBackend(ABC):
     """Abstract interface for communicating with Claude Code."""
 
     @abstractmethod
-    async def send_prompt(self, prompt: str) -> AsyncIterator[ClaudeMessage]:
+    async def send_prompt(
+        self, prompt: str, *, session_id: str | None = None
+    ) -> AsyncIterator[ClaudeMessage]:
         ...
 
     @abstractmethod

@@ -115,14 +115,24 @@ class SubprocessBackend(ClaudeBackend):
         self._claude_path = claude_path
         self._model = model
         self._process: Optional[asyncio.subprocess.Process] = None
+        self._last_session_id: Optional[str] = None
 
-    async def send_prompt(self, prompt: str) -> AsyncIterator[ClaudeMessage]:
+    @property
+    def last_session_id(self) -> Optional[str]:
+        return self._last_session_id
+
+    async def send_prompt(
+        self, prompt: str, *, session_id: str | None = None
+    ) -> AsyncIterator[ClaudeMessage]:
+        resume_id = session_id or self._last_session_id
         cmd = [
             self._claude_path, "-p",
             "--output-format", "stream-json",
             "--verbose",
-            prompt,
         ]
+        if resume_id:
+            cmd.extend(["--resume", resume_id])
+        cmd.append(prompt)
         if self._model:
             cmd.extend(["--model", self._model])
 
@@ -145,6 +155,8 @@ class SubprocessBackend(ClaudeBackend):
                 continue
 
             for msg in parse_ndjson_line(data):
+                if msg.session_id:
+                    self._last_session_id = msg.session_id
                 yield msg
 
         returncode = await self._process.wait()
