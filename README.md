@@ -167,6 +167,7 @@ claudevoice --no-tts
 --voice NAME           Piper voice name (default: en_US-lessac-medium)
 --no-tools             Don't announce tool usage (quieter during heavy file operations)
 --no-cost              Don't announce cost and duration at the end
+--quiet, -q            Only speak Claude's text response (skip tools, errors, status)
 --no-tts               Disable TTS entirely, visual output only
 --continue, -c         Resume the most recent conversation
 --resume, -r ID        Resume a specific conversation by session ID
