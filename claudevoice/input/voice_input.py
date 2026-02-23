@@ -144,7 +144,8 @@ class VoiceInput(InputSource):
         return await self._get_prompt_direct()
 
     async def _get_prompt_direct(self) -> Optional[str]:
-        """Direct listen mode: record → transcribe → return."""
+        """Direct listen mode: announce ready → record → transcribe → return."""
+        await self._speak("Ready.")
         while True:
             text = await self._record_and_transcribe()
             if text is None:
