@@ -63,6 +63,18 @@ def main():
         help="Don't announce cost at end",
     )
     parser.add_argument(
+        "--voice-input", action="store_true",
+        help="Use speech-to-text input instead of keyboard",
+    )
+    parser.add_argument(
+        "--whisper-model", default="base",
+        help="Whisper model size (default: base)",
+    )
+    parser.add_argument(
+        "--wake-word", action="store_true",
+        help="Require 'Hey Claude' wake phrase (use with --voice-input)",
+    )
+    parser.add_argument(
         "prompt", nargs="*",
         help="One-shot prompt (otherwise enters interactive mode)",
     )
@@ -100,9 +112,22 @@ def main():
         prompt = " ".join(args.prompt)
         asyncio.run(_one_shot(backend, playback, extractor, prompt))
     else:
-        from claudevoice.input.keyboard_input import KeyboardInput
+        if args.voice_input:
+            try:
+                from claudevoice.input.voice_input import VoiceInput
+                input_source = VoiceInput(
+                    whisper_model=args.whisper_model,
+                    wake_word=args.wake_word,
+                    playback=playback,
+                )
+            except ImportError:
+                print("Voice input requires extra dependencies.")
+                print("Install them with: uv pip install -e \".[voice]\"")
+                sys.exit(1)
+        else:
+            from claudevoice.input.keyboard_input import KeyboardInput
+            input_source = KeyboardInput()
         from claudevoice.app import ClaudeVoiceApp
-        input_source = KeyboardInput()
         app = ClaudeVoiceApp(backend, playback, input_source, extractor)
         asyncio.run(app.run())
 

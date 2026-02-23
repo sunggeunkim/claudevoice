@@ -33,7 +33,7 @@ class ClaudeVoiceApp:
             loop.add_signal_handler(signal.SIGINT, self._handle_interrupt)
 
         await self._playback.start()
-        await self._playback.enqueue("Claude Voice is ready. Type your prompt.")
+        await self._playback.enqueue(self._input.ready_message)
         await self._playback.drain()
 
         try:

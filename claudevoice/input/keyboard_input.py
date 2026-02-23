@@ -7,6 +7,10 @@ from claudevoice.input.base import InputSource
 class KeyboardInput(InputSource):
     """Keyboard/stdin input source."""
 
+    @property
+    def ready_message(self) -> str:
+        return "Claude Voice is ready. Type your prompt."
+
     async def get_prompt(self) -> Optional[str]:
         loop = asyncio.get_event_loop()
         while True:
