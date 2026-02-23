@@ -1,0 +1,23 @@
+[project]
+name = "claudevoice"
+version = "0.1.0"
+description = "Claude Code CLI with text-to-speech for blind users"
+requires-python = ">=3.10"
+dependencies = [
+    "piper-tts>=1.4.0",
+    "sounddevice>=0.4.6",
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
+
+[project.scripts]
+claudevoice = "claudevoice.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
