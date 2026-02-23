@@ -1,5 +1,7 @@
 import asyncio
 import json
+import shutil
+import sys
 from typing import AsyncIterator, Optional
 
 from claudevoice.claude.base import ClaudeBackend
@@ -111,11 +113,22 @@ def parse_ndjson_line(data: dict) -> list[ClaudeMessage]:
 class SubprocessBackend(ClaudeBackend):
     """Claude Code backend using subprocess + stream-json NDJSON."""
 
-    def __init__(self, claude_path: str = "claude", model: Optional[str] = None):
-        self._claude_path = claude_path
+    def __init__(self, claude_path: str | None = None, model: Optional[str] = None):
+        self._claude_path = claude_path or self._find_claude()
         self._model = model
         self._process: Optional[asyncio.subprocess.Process] = None
         self._last_session_id: Optional[str] = None
+
+    @staticmethod
+    def _find_claude() -> str:
+        """Find the claude executable, handling Windows .cmd wrapper."""
+        if sys.platform == "win32":
+            # npm installs claude.cmd on Windows
+            for name in ("claude.cmd", "claude.exe", "claude"):
+                path = shutil.which(name)
+                if path:
+                    return path
+        return "claude"
 
     @property
     def last_session_id(self) -> Optional[str]:
