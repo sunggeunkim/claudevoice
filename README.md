@@ -173,22 +173,30 @@ uv run python -m claudevoice
 
 ### Running ClaudeVoice
 
+If you set up Option A above, you can run `claudevoice` directly from anywhere:
+
+```bash
+claudevoice
+```
+
+Otherwise, use `python -m claudevoice` with the venv activated or `uv run`.
+
 Interactive mode (keeps prompting until you type `quit` or press Ctrl+C):
 
 ```bash
-python -m claudevoice
+claudevoice
 ```
 
 One-shot mode (speaks the response and exits):
 
 ```bash
-python -m claudevoice "explain what this project does"
+claudevoice "explain what this project does"
 ```
 
 Visual-only mode (no TTS, just rich terminal output):
 
 ```bash
-python -m claudevoice --no-tts
+claudevoice --no-tts
 ```
 
 ### Options
