@@ -24,11 +24,18 @@ class PlaybackManager:
     async def interrupt(self) -> None:
         self._interrupted = True
         await self._engine.stop()
+        if self._task and not self._task.done():
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
         while not self._queue.empty():
             try:
                 self._queue.get_nowait()
             except asyncio.QueueEmpty:
                 break
+        self._task = asyncio.create_task(self._playback_loop())
         self._interrupted = False
 
     async def drain(self) -> None:

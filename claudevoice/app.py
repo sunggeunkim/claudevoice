@@ -30,6 +30,7 @@ class ClaudeVoiceApp:
         self._processing = False
         self._interrupted = False
         self._first_prompt = True
+        self._prompt_task: asyncio.Task | None = None
 
     async def run(self) -> None:
         loop = asyncio.get_event_loop()
@@ -48,9 +49,14 @@ class ClaudeVoiceApp:
                 if prompt is None:
                     break
                 try:
-                    await self._process_prompt(prompt)
+                    self._prompt_task = asyncio.create_task(
+                        self._process_prompt(prompt)
+                    )
+                    await self._prompt_task
                 except asyncio.CancelledError:
                     pass
+                finally:
+                    self._prompt_task = None
         except KeyboardInterrupt:
             pass
         finally:
@@ -131,4 +137,6 @@ class ClaudeVoiceApp:
         await self._playback.interrupt()
         await self._backend.interrupt()
         self._processing = False
+        if self._prompt_task and not self._prompt_task.done():
+            self._prompt_task.cancel()
         print("\n[Speech interrupted. Enter a new prompt.]")
