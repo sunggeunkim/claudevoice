@@ -28,6 +28,7 @@ class ClaudeVoiceApp:
         self._renderer = renderer or NullRenderer()
         self._running = True
         self._processing = False
+        self._interrupted = False
         self._first_prompt = True
 
     async def run(self) -> None:
@@ -61,6 +62,7 @@ class ClaudeVoiceApp:
     async def _process_prompt(self, prompt: str) -> None:
         chunker = SentenceChunker()
         self._processing = True
+        self._interrupted = False
         quiet = self._extractor.quiet
 
         if quiet:
@@ -104,13 +106,14 @@ class ClaudeVoiceApp:
                     for sentence in sentences:
                         await self._playback.enqueue(sentence)
 
-            # Flush remaining text
-            remaining = chunker.flush()
-            if remaining:
-                await self._playback.enqueue(remaining)
+            # Skip flush/drain if interrupted — go straight to next prompt
+            if not self._interrupted:
+                remaining = chunker.flush()
+                if remaining:
+                    await self._playback.enqueue(remaining)
 
-            self._renderer.finalize()
-            await self._playback.drain()
+                self._renderer.finalize()
+                await self._playback.drain()
         finally:
             self._processing = False
             self._first_prompt = False
@@ -123,6 +126,7 @@ class ClaudeVoiceApp:
             self._running = False
 
     async def _interrupt(self) -> None:
+        self._interrupted = True
         self._renderer.finalize()
         await self._playback.interrupt()
         await self._backend.interrupt()
