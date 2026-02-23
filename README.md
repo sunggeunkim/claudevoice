@@ -1,26 +1,28 @@
 # ClaudeVoice
 
-An accessible interface to [Claude Code](https://claude.ai/claude-code) for blind and visually impaired users. ClaudeVoice reads Claude's responses aloud using natural-sounding text-to-speech, streaming sentences as they arrive so you hear output immediately.
+An accessible interface to [Claude Code](https://claude.ai/claude-code) for blind and visually impaired users. ClaudeVoice displays Claude's responses with rich terminal formatting — markdown rendering, syntax-highlighted code, colored tool panels — while simultaneously reading them aloud via text-to-speech. Conversations persist across prompts with multi-turn support.
 
 ## How it works
 
-1. You type a prompt (speech-to-text input planned for the future)
+1. You type a prompt (or use speech-to-text with `--voice-input`)
 2. ClaudeVoice sends it to the Claude Code CLI in the background
 3. Claude's response is streamed back as structured JSON
-4. Important content is extracted and spoken aloud sentence by sentence
-5. Tool actions are announced ("Reading file auth.py", "Running command: git status")
-6. When finished, cost and duration are announced
+4. Responses are **displayed** in the terminal with Rich markdown rendering and **spoken** via TTS simultaneously
+5. Tool actions appear as colored panels and are announced aloud
+6. When finished, cost and duration are shown and spoken
+7. Follow-up prompts continue the same conversation automatically
 
 Press **Ctrl+C** at any time to interrupt speech and enter a new prompt.
 
-## What gets spoken
+## What you see and hear
 
-- Claude's text responses, streamed sentence by sentence
-- Tool action summaries (e.g. "Editing file main.py")
-- Errors and warnings
-- Task completion with cost and duration
+- Claude's text responses rendered as markdown with syntax-highlighted code blocks
+- Tool invocations shown as cyan-bordered panels (with command syntax for Bash tools)
+- Errors highlighted in red panels
+- Cost and duration displayed after each response
+- All of the above spoken aloud via TTS (unless `--no-tts` is used)
 
-Thinking blocks and raw tool output are skipped to keep things concise.
+Thinking blocks are hidden by default (enable with `--show-thinking`).
 
 ## Requirements
 
@@ -126,14 +128,27 @@ One-shot mode (speaks the response and exits):
 python -m claudevoice "explain what this project does"
 ```
 
+Visual-only mode (no TTS, just rich terminal output):
+
+```bash
+python -m claudevoice --no-tts
+```
+
 ### Options
 
 ```
---model MODEL        Claude model to use (e.g. sonnet, opus)
---tts-model PATH     Path to a Piper .onnx model file
---voice NAME         Piper voice name (default: en_US-lessac-medium)
---no-tools           Don't announce tool usage (quieter during heavy file operations)
---no-cost            Don't announce cost and duration at the end
+--model MODEL          Claude model to use (e.g. sonnet, opus)
+--tts-model PATH       Path to a Piper .onnx model file
+--voice NAME           Piper voice name (default: en_US-lessac-medium)
+--no-tools             Don't announce tool usage (quieter during heavy file operations)
+--no-cost              Don't announce cost and duration at the end
+--no-tts               Disable TTS entirely, visual output only
+--continue, -c         Resume the most recent conversation
+--resume, -r ID        Resume a specific conversation by session ID
+--show-thinking        Display thinking blocks in dim style
+--voice-input          Use speech-to-text input instead of keyboard
+--whisper-model SIZE   Whisper model size for voice input (default: base)
+--wake-word            Require 'Hey Claude' wake phrase (use with --voice-input)
 ```
 
 ### Examples
@@ -142,11 +157,23 @@ python -m claudevoice "explain what this project does"
 # Use a specific model
 python -m claudevoice --model sonnet "fix the login bug"
 
-# Quiet mode — only Claude's actual response, no tool announcements
+# Visual only — no TTS, just rich terminal rendering
+python -m claudevoice --no-tts "summarize this project"
+
+# Quiet mode — no tool announcements or cost readout
 python -m claudevoice --no-tools --no-cost "summarize this project"
+
+# Continue the most recent conversation
+python -m claudevoice -c
+
+# Resume a specific session
+python -m claudevoice -r abc123-session-id
 
 # Use a custom voice model
 python -m claudevoice --tts-model ~/voices/en_GB-alba-medium.onnx
+
+# Voice input with wake word
+python -m claudevoice --voice-input --wake-word
 ```
 
 ## Running tests
@@ -160,12 +187,13 @@ python -m pytest tests/ -v
 
 ```
 User prompt
-  → SubprocessBackend (claude -p --output-format stream-json)
+  → SubprocessBackend (claude -p --output-format stream-json --resume)
   → ClaudeMessage (unified message type)
-  → MessageExtractor (converts to speakable text)
-  → SentenceChunker (splits into sentences for streaming)
-  → PlaybackManager (async queue)
-  → PiperTTSEngine (neural TTS → speakers)
+  ├→ VisualRenderer (Rich markdown, tool panels, cost footer → terminal)
+  └→ MessageExtractor (converts to speakable text)
+     → SentenceChunker (splits into sentences for streaming)
+     → PlaybackManager (async queue)
+     → PiperTTSEngine (neural TTS → speakers)
 ```
 
-The TTS engine and input source are abstracted behind base classes, making it straightforward to swap in a different TTS engine or add speech-to-text input in the future.
+The TTS engine, input source, and renderer are abstracted behind base classes. Use `NullPlaybackManager` for visual-only mode or `NullRenderer` for TTS-only mode.
