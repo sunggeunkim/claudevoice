@@ -31,6 +31,14 @@ Thinking blocks and raw tool output are skipped to keep things concise.
 
 ## Setup
 
+### Linux (Ubuntu/Debian)
+
+Install system dependencies:
+
+```bash
+sudo apt-get install -y libportaudio2
+```
+
 Install ClaudeVoice:
 
 ```bash
@@ -46,6 +54,63 @@ cd ~/.local/share/piper-voices
 wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
 wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
 ```
+
+### macOS
+
+Install PortAudio via Homebrew:
+
+```bash
+brew install portaudio
+```
+
+Install ClaudeVoice:
+
+```bash
+cd claudevoice
+uv venv && uv pip install -e .
+```
+
+Download a Piper voice model:
+
+```bash
+mkdir -p ~/.local/share/piper-voices
+cd ~/.local/share/piper-voices
+curl -LO https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
+curl -LO https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+```
+
+### Windows
+
+No extra system dependencies needed — `sounddevice` bundles PortAudio on Windows.
+
+You may need [Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) installed (required by `onnxruntime`).
+
+Install ClaudeVoice:
+
+```powershell
+cd claudevoice
+uv venv && uv pip install -e .
+```
+
+Download a Piper voice model into `%LOCALAPPDATA%\piper-voices\` or use `--tts-model` to point to any `.onnx` file:
+
+```powershell
+mkdir "$env:USERPROFILE\.local\share\piper-voices"
+cd "$env:USERPROFILE\.local\share\piper-voices"
+Invoke-WebRequest -Uri "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx" -OutFile "en_US-lessac-medium.onnx"
+Invoke-WebRequest -Uri "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json" -OutFile "en_US-lessac-medium.onnx.json"
+```
+
+### WSL2 (Windows Subsystem for Linux)
+
+Follow the Linux instructions above, plus set up audio routing to Windows:
+
+```bash
+sudo apt-get install -y libportaudio2 pulseaudio-utils
+export PULSE_SERVER=unix:/mnt/wslg/PulseServer
+```
+
+Add the `export` line to your `~/.bashrc` to make it persistent. Requires Windows 11 with WSLg enabled (default on recent builds).
 
 ## Usage
 
@@ -104,4 +169,3 @@ User prompt
 ```
 
 The TTS engine and input source are abstracted behind base classes, making it straightforward to swap in a different TTS engine or add speech-to-text input in the future.
-# claudevoice
