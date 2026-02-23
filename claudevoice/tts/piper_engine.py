@@ -53,22 +53,10 @@ class PiperTTSEngine(TTSEngine):
             self._stream = stream
 
         try:
-            audio_buffer = bytearray()
-            chunk_size = 4096
-
-            for audio_bytes in self._voice.synthesize_stream_raw(text):
+            for chunk in self._voice.synthesize(text):
                 if self._stop_event.is_set():
                     break
-                audio_buffer += audio_bytes
-                while len(audio_buffer) >= chunk_size:
-                    chunk = bytes(audio_buffer[:chunk_size])
-                    audio_buffer = audio_buffer[chunk_size:]
-                    samples = np.frombuffer(chunk, dtype=np.int16)
-                    stream.write(samples)
-
-            if audio_buffer and not self._stop_event.is_set():
-                samples = np.frombuffer(bytes(audio_buffer), dtype=np.int16)
-                stream.write(samples)
+                stream.write(chunk.audio_int16_array)
         finally:
             stream.stop()
             stream.close()
