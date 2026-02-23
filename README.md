@@ -170,6 +170,7 @@ claudevoice --no-tts
 --no-tts               Disable TTS entirely, visual output only
 --continue, -c         Resume the most recent conversation
 --resume, -r ID        Resume a specific conversation by session ID
+--permission-mode MODE Permission mode for Claude: default, acceptEdits, dontAsk, bypassPermissions
 --show-thinking        Display thinking blocks in dim style
 --voice-input          Use speech-to-text input instead of keyboard
 --whisper-model SIZE   Whisper model size for voice input (default: base)
