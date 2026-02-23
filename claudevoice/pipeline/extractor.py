@@ -49,13 +49,17 @@ class MessageExtractor:
             return text if text.strip() else None
 
         elif message.kind == MessageKind.TOOL_START:
+            if self.quiet:
+                # Brief spoken cue: just the tool name
+                name = message.tool_name or "tool"
+                return f"{name}."
             if self.speak_tools:
                 return message.text
             return None
 
         elif message.kind == MessageKind.ERROR:
             if self.quiet:
-                return None
+                return "Error."
             return f"Error: {message.text}"
 
         elif message.kind == MessageKind.RESULT:
