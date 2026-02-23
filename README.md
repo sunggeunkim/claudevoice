@@ -210,6 +210,20 @@ python -m claudevoice --tts-model ~/voices/en_GB-alba-medium.onnx
 python -m claudevoice --voice-input --wake-word
 ```
 
+## Voice input (optional)
+
+To use speech-to-text input (`--voice-input`), install the extra dependencies:
+
+```bash
+uv pip install -e ".[voice]"
+```
+
+This installs OpenAI Whisper and PyTorch. Then run:
+
+```bash
+python -m claudevoice --voice-input
+```
+
 ## Running tests
 
 ```bash
